@@ -1,0 +1,6 @@
+---
+# Consul playbook on digital ocean
+- name: Consul servers
+  hosts: consul_servers
+  roles:
+    - consul
