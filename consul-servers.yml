@@ -2,5 +2,6 @@
 # Consul playbook on digital ocean
 - name: Consul servers
   hosts: consul_servers
+  become: true
   roles:
-    - consul
+    - ansible-role-consul-server
