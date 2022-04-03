@@ -3,5 +3,12 @@
 - name: Consul servers
   hosts: consul_servers
   become: true
+  pre_tasks:
+    - ansible.builtin.pause:
+        minutes: 1
   roles:
-    - ansible-role-consul-server
+    - role: ansible-role-consul-server
+      internal_ip_range: 10.10.20.0/24
+      do_region:
+        slug: ams3
+      

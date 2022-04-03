@@ -39,33 +39,57 @@ variable "tags" {
   ]
 }
 
+variable "base_image_name" {
+  type        = string
+  default     = "105351188"
+  description = "The name of the base image to use as starting point for the builds"
+}
+
 variable "roles_path" {
   description = "Path to Ansible roles"
-  default = "roles"
-  type = string
+  default     = "roles"
+  type        = string
+}
+
+variable "ssh_key_id" {
+  description = "ID of the preregistered DO key. See  /v2/account/keys"
+  default     = "34126855"
+  type        = number
+}
+
+variable "ssh_private_key_file" {
+  description = "Path to the SSH private key file"
+  default     = "~/.ssh/id_rsa"
+  type        = string
 }
 
 source "digitalocean" "base-image" {
-  snapshot_name      = var.droplet_name
-  api_token          = vault("digitalocean/data/tokens", "packer")
-  image              = "ubuntu-21-10-x64"
-  region             = var.region
-  size               = var.size
-  // ssh_key_id = "test-instances"
-  ssh_username       = "root"
-  private_networking = true
-  droplet_name       = var.droplet_name
-  monitoring         = false
-  vpc_uuid           = var.vpc_id
-  tags               = var.tags
+  snapshot_name        = var.droplet_name
+  api_token            = vault("digitalocean/data/tokens", "packer")
+  image                = var.base_image_name
+  region               = var.region
+  size                 = var.size
+  ssh_key_id           = var.ssh_key_id
+  ssh_private_key_file = var.ssh_private_key_file
+  ssh_username         = "hah"
+  private_networking   = true
+  droplet_name         = var.droplet_name
+  monitoring           = false
+  vpc_uuid             = var.vpc_id
+  tags                 = var.tags
 }
 
 build {
+
+  name = "consul-image"
+
   sources = ["source.digitalocean.base-image"]
+
   provisioner "ansible" {
-    groups = ["consul_servers"]
-    playbook_file    = "consul-servers.yml"
+    groups        = ["consul_servers"]
+    playbook_file = "consul-servers.yml"
     ansible_env_vars = [
+      "ANSIBLE_PRIVATE_KEY_FILE=~/.ssh/id_rsa",
       "ANSIBLE_ROLES_PATH=${var.roles_path}"
     ]
   }
