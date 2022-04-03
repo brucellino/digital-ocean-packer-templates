@@ -1,6 +1,43 @@
 ---
 # Consul playbook on digital ocean
-- name: Consul servers
-  hosts: consul_servers
-  roles:
-    - do-base-image
+- name: Digital Ocean Base Image Configuration
+  hosts: all
+  tasks:
+    - name: disable auto upgrades
+      replace:
+        path: /etc/apt/apt.conf.d/20auto-upgrades
+        regexp: '^APT::Periodic::Unattended-Upgrade "1";$'
+        replace: 'APT::Periodic::Unattended-Upgrade "0";'
+    - name: Stop the upgrades!
+      service:
+        name: unattended-upgrades
+        state: stopped
+        enabled: false
+    - name: Add H@H user
+      user:
+        name: hah
+        comment: "H@H user"
+        groups: sudo
+        append: true
+        shell: /bin/bash
+        state: present
+
+    - name: Give hah my keys
+      authorized_key:
+        user: hah
+        key: https://github.com/brucellino.keys
+        manage_dir: true
+        state: present
+        exclusive: false
+        validate_certs: true
+        comment: "El magnifico"
+    - name: hah | Set hah as sudoer
+      copy:
+        content: "hah ALL=(ALL) NOPASSWD:ALL"  #pragma: allowlist secret
+        dest: /etc/sudoers.d/hah
+        mode: 0440
+    - name: Disable root login
+      replace:
+        path: /etc/ssh/sshd_config
+        regexp: '^PermitRootLogin yes'
+        replace: 'PermitRootLogin no'
